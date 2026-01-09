@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 
+# Visual Studio
+.vs/
+
 # testing
 /coverage
 
