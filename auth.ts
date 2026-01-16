@@ -3,7 +3,8 @@ import Credentials from 'next-auth/providers/credentials';
 import { authConfig } from './auth.config';
 import { z } from 'zod';
 import type { User } from '@/app/lib/definitions';
-import bcrypt from 'bcrypt';
+// bcrypt yerine bcryptjs kullanmanýzý öneririm (seed dosyanýzla uyumlu olmasý için)
+import bcrypt from 'bcryptjs'; 
 import postgres from 'postgres';
  
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
@@ -30,8 +31,17 @@ export const { auth, signIn, signOut } = NextAuth({
         if (parsedCredentials.success) {
           const { email, password } = parsedCredentials.data;
           const user = await getUser(email);
+          
           if (!user) return null;
+
+          // 1. Þifreleri karþýlaþtýrýn
+          const passwordsMatch = await bcrypt.compare(password, user.password);
+ 
+          // 2. Eðer þifreler eþleþirse kullanýcýyý dönün
+          if (passwordsMatch) return user;
         }
+
+        // Eðer buraya ulaþtýysa bilgiler yanlýþtýr
         console.log('Invalid credentials');
         return null;
       },
